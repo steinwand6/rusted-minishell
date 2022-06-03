@@ -1,5 +1,7 @@
 use std::{
+    env,
     io::{stdin, stdout, Write},
+    path::Path,
     process::Command,
 };
 
@@ -13,11 +15,25 @@ fn main() {
         let mut input = String::new();
         stdin().read_line(&mut input).unwrap();
 
-        let command = input.trim();
+        let mut parts = input.trim().split_whitespace();
+        let command = parts.next().unwrap();
+        let args = parts;
 
-        let mut child = Command::new(command).spawn().unwrap();
+        match command {
+            "cd" => {
+                // default to '/' as new directory if one was not provided
+                let new_dir = args.peekable().peek().map_or("/", |x| *x);
+                let root = Path::new(new_dir);
+                if let Err(e) = env::set_current_dir(&root) {
+                    eprintln!("{}", e);
+                }
+            }
+            command => {
+                let mut child = Command::new(command).args(args).spawn().unwrap();
 
-        // don't accept another command until this one completes
-        _ = child.wait();
+                // don't accept another command until this one completes
+                _ = child.wait();
+            }
+        }
     }
 }
