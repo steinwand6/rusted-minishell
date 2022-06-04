@@ -28,11 +28,16 @@ fn main() {
                     eprintln!("{}", e);
                 }
             }
+            "exit" => return,
             command => {
-                let mut child = Command::new(command).args(args).spawn().unwrap();
+                let child = Command::new(command).args(args).spawn();
 
-                // don't accept another command until this one completes
-                _ = child.wait();
+                match child {
+                    Ok(mut child) => {
+                        _ = child.wait();
+                    }
+                    Err(e) => eprintln!("{}", e),
+                }
             }
         }
     }
