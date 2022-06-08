@@ -1,5 +1,4 @@
 use std::{
-    env,
     io::{stdin, stdout, Write},
     path::Path,
     process::{Child, Command, Stdio},
@@ -28,12 +27,17 @@ fn main() {
                     // default to '/' as new directory if one was not provided
                     let new_dir = args.peekable().peek().map_or("/", |x| *x);
                     let root = Path::new(new_dir);
-                    if let Err(e) = env::set_current_dir(&root) {
+                    if let Err(e) = std::env::set_current_dir(&root) {
                         eprintln!("{}", e);
                     }
                     previous_command = None;
                 }
                 "exit" => return,
+                "env" => {
+                    for (key, value) in std::env::vars() {
+                        println!("{}={}", key, value);
+                    }
+                }
                 command => {
                     let stdin = previous_command.map_or(Stdio::inherit(), |output: Child| {
                         Stdio::from(output.stdout.unwrap())
