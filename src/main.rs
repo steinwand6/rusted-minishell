@@ -1,8 +1,11 @@
+mod buildin;
+
 use std::{
     io::{stdin, stdout, Write},
-    path::Path,
     process::{Child, Command, Stdio},
 };
+
+use crate::buildin::{buildin_cd, buildin_env, buildin_exit};
 
 fn main() {
     loop {
@@ -24,20 +27,11 @@ fn main() {
 
             match command {
                 "cd" => {
-                    // default to '/' as new directory if one was not provided
-                    let new_dir = args.peekable().peek().map_or("/", |x| *x);
-                    let root = Path::new(new_dir);
-                    if let Err(e) = std::env::set_current_dir(&root) {
-                        eprintln!("{}", e);
-                    }
+                    buildin_cd(args);
                     previous_command = None;
                 }
-                "exit" => return,
-                "env" => {
-                    for (key, value) in std::env::vars() {
-                        println!("{}={}", key, value);
-                    }
-                }
+                "exit" => buildin_exit(),
+                "env" => _ = buildin_env(),
                 command => {
                     let stdin = previous_command.map_or(Stdio::inherit(), |output: Child| {
                         Stdio::from(output.stdout.unwrap())
